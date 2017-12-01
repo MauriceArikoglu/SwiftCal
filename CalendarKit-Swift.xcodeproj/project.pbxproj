@@ -16,6 +16,7 @@
 		51A1D3221FCF4A5D00963B5F /* CalendarKit_SwiftUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D3211FCF4A5D00963B5F /* CalendarKit_SwiftUITests.swift */; };
 		51A1D33C1FCF4F4600963B5F /* CalendarEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D33B1FCF4F4600963B5F /* CalendarEvent.swift */; };
 		51A1D33F1FCF572800963B5F /* ICSEventParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D33E1FCF572800963B5F /* ICSEventParser.swift */; };
+		51A1D3411FD057DB00963B5F /* SwiftCal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D3401FD057DB00963B5F /* SwiftCal.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		51A1D3231FCF4A5D00963B5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		51A1D33B1FCF4F4600963B5F /* CalendarEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEvent.swift; sourceTree = "<group>"; };
 		51A1D33E1FCF572800963B5F /* ICSEventParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICSEventParser.swift; sourceTree = "<group>"; };
+		51A1D3401FD057DB00963B5F /* SwiftCal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftCal.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 		51A1D33D1FCF4F4C00963B5F /* SwiftCal */ = {
 			isa = PBXGroup;
 			children = (
+				51A1D3401FD057DB00963B5F /* SwiftCal.swift */,
 				51A1D33B1FCF4F4600963B5F /* CalendarEvent.swift */,
 				51A1D33E1FCF572800963B5F /* ICSEventParser.swift */,
 			);
@@ -276,6 +279,7 @@
 				51A1D3041FCF4A5C00963B5F /* ViewController.swift in Sources */,
 				51A1D33C1FCF4F4600963B5F /* CalendarEvent.swift in Sources */,
 				51A1D33F1FCF572800963B5F /* ICSEventParser.swift in Sources */,
+				51A1D3411FD057DB00963B5F /* SwiftCal.swift in Sources */,
 				51A1D3021FCF4A5C00963B5F /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

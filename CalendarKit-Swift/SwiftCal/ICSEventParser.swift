@@ -38,7 +38,7 @@ class ICSEventParser: NSObject {
 
     static func event(from icsString: String) -> CalendarEvent? {
         
-        guard let timezone = self.timezone(from: icsString) else { return nil }
+        guard let timezone = timezone(from: icsString) else { return nil }
         
         let dateFormatter = DateFormatter()
         
@@ -88,6 +88,11 @@ class ICSEventParser: NSObject {
         
         event.location = location(from: icsString)
         
+        event.exceptionDates = exceptionDates(from: icsString).map({ (dateString) -> Date in
+            // If the date can not be read we return distant Past
+            return dateFormatter.dateFromICSString(icsDate: dateString).date ?? Date.distantPast
+        })
+
         if let exceptionRule = exceptionRule(from: icsString) {
             event.exceptionRule = eventRule(from: exceptionRule)
         }
@@ -490,7 +495,7 @@ class ICSEventParser: NSObject {
                 ruleset.untilDate = dateFormatter.dateFromICSString(icsDate: parsedRule).date
                 
             case let rule where (rule?.range(of: Rule.interval) != nil):
-                ruleset.interval = Int(parsedRule)
+                ruleset.interval = Int(parsedRule) ?? 0
                 
             case let rule where (rule?.range(of: Rule.day) != nil):
                 ruleset.byDay = parsedRule.components(separatedBy: ",")
