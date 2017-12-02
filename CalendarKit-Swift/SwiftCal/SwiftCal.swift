@@ -19,6 +19,29 @@ class SwiftCal: NSObject {
         return events.count
     }
     
+    func events(for date: Date) -> [CalendarEvent] {
+        
+        var eventsForDate = [CalendarEvent]()
+        
+        for event in events {
+            if event.takesPlaceOnDate(date) { eventsForDate.append(event) }
+        }
+        
+        eventsForDate = eventsForDate.sorted(by: { (e1, e2) in
+            //We compare time only because initial start dates might be different because of recurrence
+            let calendar = Calendar.current
+            guard let sd1 = e1.startDate,
+                let sd2 = e2.startDate,
+            let compareDate1 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd1)),
+            let compareDate2 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd2))
+                else { return false }
+            
+            return compareDate1 < compareDate2
+        })
+        
+        return eventsForDate
+    }
+    
 }
 
 class Read {
