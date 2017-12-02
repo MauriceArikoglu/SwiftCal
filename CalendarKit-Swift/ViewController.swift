@@ -13,6 +13,19 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        do {
+            let file = try String(contentsOfFile: Bundle.main.path(forResource: "university-formatted", ofType: "ics") ?? "")
+            let swiftCal = Read.swiftCal(from: file)
+            let eventsForToday = swiftCal.events(for: Date().addingTimeInterval(86400 * 1))
+
+            for event in eventsForToday {
+                print(event.title ?? "")
+                print(event.startDate ?? "")
+            }
+        } catch {
+            
+        }
     }
 
     override func didReceiveMemoryWarning() {

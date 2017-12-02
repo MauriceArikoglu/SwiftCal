@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		51873BD11FD2AA570000E9C5 /* university.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD01FD2AA570000E9C5 /* university.ics */; };
 		51873BD31FD2AAC50000E9C5 /* basic.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD21FD2AAC50000E9C5 /* basic.ics */; };
+		51873BD51FD2D6150000E9C5 /* university-formatted.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD41FD2D6150000E9C5 /* university-formatted.ics */; };
 		51A1D3021FCF4A5C00963B5F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D3011FCF4A5C00963B5F /* AppDelegate.swift */; };
 		51A1D3041FCF4A5C00963B5F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A1D3031FCF4A5C00963B5F /* ViewController.swift */; };
 		51A1D3071FCF4A5C00963B5F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 51A1D3051FCF4A5C00963B5F /* Main.storyboard */; };
@@ -39,8 +40,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		51873BD01FD2AA570000E9C5 /* university.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = university.ics; sourceTree = "<group>"; };
+		51873BD01FD2AA570000E9C5 /* university.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = university.ics; sourceTree = "<group>"; usesTabs = 0; wrapsLines = 1; };
 		51873BD21FD2AAC50000E9C5 /* basic.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = basic.ics; sourceTree = "<group>"; };
+		51873BD41FD2D6150000E9C5 /* university-formatted.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "university-formatted.ics"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.applescript; };
 		51A1D2FE1FCF4A5C00963B5F /* CalendarKit-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CalendarKit-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		51A1D3011FCF4A5C00963B5F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		51A1D3031FCF4A5C00963B5F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 				51A1D30A1FCF4A5C00963B5F /* LaunchScreen.storyboard */,
 				51A1D30D1FCF4A5C00963B5F /* Info.plist */,
 				51873BD01FD2AA570000E9C5 /* university.ics */,
+				51873BD41FD2D6150000E9C5 /* university-formatted.ics */,
 				51873BD21FD2AAC50000E9C5 /* basic.ics */,
 			);
 			path = "CalendarKit-Swift";
@@ -255,6 +258,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51873BD51FD2D6150000E9C5 /* university-formatted.ics in Resources */,
 				51A1D30C1FCF4A5C00963B5F /* LaunchScreen.storyboard in Resources */,
 				51873BD11FD2AA570000E9C5 /* university.ics in Resources */,
 				51873BD31FD2AAC50000E9C5 /* basic.ics in Resources */,
