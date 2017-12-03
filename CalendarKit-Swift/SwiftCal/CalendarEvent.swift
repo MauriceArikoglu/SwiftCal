@@ -8,13 +8,13 @@
 
 import UIKit
 
-enum EventStatus {
+public enum EventStatus {
     case tentative
     case confirmed
     case cancelled
 }
 
-struct EventAttendee {
+public struct EventAttendee {
     
     enum AttendeeRole {
         case chair
@@ -29,7 +29,7 @@ struct EventAttendee {
     var role: AttendeeRole?
 }
 
-class EventRule: NSObject {
+public class EventRule: NSObject {
     
     var frequency: String?
     var count: Int?
@@ -51,37 +51,37 @@ class EventRule: NSObject {
 
 }
 
-class CalendarEvent: NSObject {
+public class CalendarEvent: NSObject {
 
     // MARK: Public properties
-    var startDate: Date?
-    var endDate: Date?
+    public var startDate: Date?
+    public var endDate: Date?
     var occurrenceDate: Date?
-    var isAllDay: Bool = false
+    public var isAllDay: Bool = false
     
-    var status: EventStatus?
+    public var status: EventStatus?
 
-    var createdDate: Date?
-    var lastModified: Date?
-    var eventIdentifier: String?
+    public var createdDate: Date?
+    public var lastModified: Date?
+    public var eventIdentifier: String?
     
-    var title: String?
-    var notes: String?
-    var hasNotes: Bool {
+    public var title: String?
+    public var notes: String?
+    public var hasNotes: Bool {
         get {
             return !(notes ?? "").isEmpty
         }
     }
     
-    var location: String?
-    var hasLocation: Bool {
+    public var location: String?
+    public var hasLocation: Bool {
         get {
             return !(location ?? "").isEmpty
         }
     }
     
-    var attendees = [EventAttendee]()
-    var hasAttendees: Bool {
+    public var attendees = [EventAttendee]()
+    public var hasAttendees: Bool {
         get {
             return !attendees.isEmpty
         }
@@ -108,14 +108,14 @@ class CalendarEvent: NSObject {
         }
     }
 
-    init(startDate: Date, endDate: Date?, uniqueId: String) {
+    public init(startDate: Date, endDate: Date?, uniqueId: String) {
         super.init()
         self.startDate = startDate
         self.endDate = endDate
         self.eventIdentifier = uniqueId
     }
     
-    func takesPlaceOnDate(_ checkDate: Date) -> Bool {
+    public func takesPlaceOnDate(_ checkDate: Date) -> Bool {
         // Check if start Date exists and if start Date is in future compared to now
         guard let startDate = startDate,
         startDate < Date() else {
@@ -368,27 +368,5 @@ class CalendarEvent: NSObject {
             return false
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
 }

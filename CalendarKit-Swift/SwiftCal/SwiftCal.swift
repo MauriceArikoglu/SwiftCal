@@ -8,18 +8,18 @@
 
 import UIKit
 
-class SwiftCal: NSObject {
+public class SwiftCal: NSObject {
 
     var events = [CalendarEvent]()
-    var timezone: NSTimeZone?
+    public var timezone: NSTimeZone?
     
-    @discardableResult func addEvent(_ event: CalendarEvent) -> Int {
+    @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
         
         events.append(event)
         return events.count
     }
     
-    func events(for date: Date) -> [CalendarEvent] {
+    public func events(for date: Date) -> [CalendarEvent] {
         
         var eventsForDate = [CalendarEvent]()
         
@@ -44,9 +44,9 @@ class SwiftCal: NSObject {
     
 }
 
-class Read {
+public class Read {
     
-    static func swiftCal(from icsString: String) -> SwiftCal {
+    public static func swiftCal(from icsString: String) -> SwiftCal {
         
         let formattedICS = icsString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         var calendarEvents = formattedICS.components(separatedBy: "BEGIN:VEVENT")
