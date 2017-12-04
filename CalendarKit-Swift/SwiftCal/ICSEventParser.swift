@@ -549,7 +549,7 @@ extension String {
         do {
             let regex = try NSRegularExpression.init(pattern: " ([A-Z-]){2,}(;|:){1}[^ ]", options: [])
             if let rangeToRemove = Range(regex.rangeOfFirstMatch(in: string, options: [], range: NSRange(location: 0, length: string.utf16.count))) {
-                
+
                 string = String(string[..<string.index(string.startIndex, offsetBy: rangeToRemove.lowerBound)])
             }
         } catch {

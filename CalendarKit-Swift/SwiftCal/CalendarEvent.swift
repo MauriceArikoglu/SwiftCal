@@ -54,26 +54,26 @@ public class EventRule: NSObject {
 public class CalendarEvent: NSObject {
 
     // MARK: Public properties
-    public var startDate: Date?
-    public var endDate: Date?
+    @objc public var startDate: Date?
+    @objc public var endDate: Date?
     var occurrenceDate: Date?
-    public var isAllDay: Bool = false
+    @objc public var isAllDay: Bool = false
     
     public var status: EventStatus?
 
-    public var createdDate: Date?
-    public var lastModified: Date?
-    public var eventIdentifier: String?
+    @objc public var createdDate: Date?
+    @objc public var lastModified: Date?
+    @objc public var eventIdentifier: String?
     
-    public var title: String?
-    public var notes: String?
+    @objc public var title: String?
+    @objc public var notes: String?
     public var hasNotes: Bool {
         get {
             return !(notes ?? "").isEmpty
         }
     }
     
-    public var location: String?
+    @objc public var location: String?
     public var hasLocation: Bool {
         get {
             return !(location ?? "").isEmpty
