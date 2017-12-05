@@ -63,7 +63,7 @@ public class Read {
             
             if let timezone = calendarIdNSString?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: CharacterSet.newlines) {
 
-                print("Calendar Timezone: \(timezone)")
+//                print("Calendar Timezone: \(timezone)")
                 
                 calendar.timezone = NSTimeZone(name: timezone)
 
