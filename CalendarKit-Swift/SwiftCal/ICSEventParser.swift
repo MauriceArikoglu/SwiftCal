@@ -228,8 +228,21 @@ class ICSEventParser: NSObject {
         var locationString: NSString?
         
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = characterSetWithNewLineSkip()
         eventScanner.scanUpTo(ICS.location, into: nil)
         eventScanner.scanUpTo("\n", into: &locationString)
+
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                locationString = locationString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
 
         return locationString?.replacingOccurrences(of: ICS.location, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
@@ -261,7 +274,7 @@ class ICSEventParser: NSObject {
             var nextLine: NSString?
             eventScanner.scanUpTo("\n", into: &nextLine)
             if let nextLine = nextLine, nextLine.hasPrefix(" ") {
-                descriptionString = descriptionString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as! NSString
+                descriptionString = descriptionString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
             } else {
                 isMultiLineDescription = false;
             }
