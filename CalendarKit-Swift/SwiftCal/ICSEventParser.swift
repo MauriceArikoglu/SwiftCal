@@ -228,7 +228,7 @@ class ICSEventParser: NSObject {
         var locationString: NSString?
         
         let eventScanner = Scanner(string: icsString)
-        eventScanner.charactersToBeSkipped = characterSetWithNewLineSkip()
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         eventScanner.scanUpTo(ICS.location, into: nil)
         eventScanner.scanUpTo("\n", into: &locationString)
 
@@ -266,8 +266,12 @@ class ICSEventParser: NSObject {
         eventScanner.scanUpTo(ICS.description, into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
 
-        // description could have newline characters in them (ideally newlines within the description should be represented by \\n as per ICS protocol)
-        // we know these newlines are characters within the description and not delimiters, since they start with a space or tab
+        // a multi-line description can have newline characters
+        // as per ICS protocol, the newline characters within a field should be represented by \\n
+        // however, some ICS files don't follow this rule and use the actual newline character (\n) instead
+        // the way to differentiate between this \n and the \n that acts as a delimiter between different fields in the ICS file is that
+        // the newline that starts after this \n has an empty string prefix
+        // are characters within the description and not delimiters, since they start with a space or tab
         var isMultiLineDescription = true;
 
         while isMultiLineDescription {
@@ -283,7 +287,7 @@ class ICSEventParser: NSObject {
         return descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
     }
 
-    private static func characterSetWithNewLineSkip() -> CharacterSet {
+    private static func newlineCharacterSet() -> CharacterSet {
         var skipCharacterSet = CharacterSet()
         skipCharacterSet.insert(charactersIn: "\n")
         skipCharacterSet.insert(charactersIn: "\r\n")
@@ -319,7 +323,7 @@ class ICSEventParser: NSObject {
         var attendees = [EventAttendee]()
         
         let eventScanner = Scanner(string: icsString)
-        eventScanner.charactersToBeSkipped = characterSetWithNewLineSkip()
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         
         var scanStatus = false;
         
