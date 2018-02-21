@@ -15,18 +15,23 @@ public enum EventStatus {
 }
 
 public struct EventAttendee {
-    
-    enum AttendeeRole {
+
+    public enum AttendeeRole {
         case chair
         case required
         case optional
         case non
     }
-    
+
     var url: String?
-    var name: String?
-    
-    var role: AttendeeRole?
+
+    public var name: String?
+
+    public var email: String?
+
+    public var status: String?
+
+    public var role: AttendeeRole?
 }
 
 public class EventRule: NSObject {
@@ -86,7 +91,9 @@ public class CalendarEvent: NSObject {
             return !attendees.isEmpty
         }
     }
-    
+
+    public var organizerEmail: String?
+
     var exceptionDates: [Date]?
     var hasExceptionDates: Bool {
         get {
@@ -102,6 +109,7 @@ public class CalendarEvent: NSObject {
     }
 
     var recurrenceRule: EventRule?
+    public var recurrenceRuleString: String?
     var hasRecurrenceRule: Bool {
         get {
             return (recurrenceRule != nil)
@@ -370,3 +378,4 @@ public class CalendarEvent: NSObject {
     }
     
 }
+
