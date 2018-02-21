@@ -252,7 +252,29 @@ class ICSEventParser: NSObject {
         let eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICS.description, into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
-        return descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+
+        // description could have newline characters in them (ideally newlines within the description should be represented by \\n as per ICS protocol)
+        // we know these newlines are characters within the description and not delimiters, since they start with a space or tab
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                descriptionString = descriptionString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as! NSString
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
+
+        return descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+    }
+
+    private static func characterSetWithNewLineSkip() -> CharacterSet {
+        var skipCharacterSet = CharacterSet()
+        skipCharacterSet.insert(charactersIn: "\n")
+        skipCharacterSet.insert(charactersIn: "\r\n")
+        return skipCharacterSet
     }
     
     private static func createdDate(from icsString: String) -> String? {
@@ -284,6 +306,7 @@ class ICSEventParser: NSObject {
         var attendees = [EventAttendee]()
         
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = characterSetWithNewLineSkip()
         
         var scanStatus = false;
         
@@ -297,6 +320,20 @@ class ICSEventParser: NSObject {
                 scanStatus = eventScanner.scanUpTo("\n", into: &attendeeNSString)
                 
                 if scanStatus {
+
+                    var isMultiLineDescription = true;
+
+                    while isMultiLineDescription {
+                        var nextLine: NSString?
+                        let originalScanLocation = eventScanner.scanLocation
+                        eventScanner.scanUpTo("\n", into: &nextLine)
+                        if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                            attendeeNSString = attendeeNSString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+                        } else {
+                            eventScanner.scanLocation = originalScanLocation
+                            isMultiLineDescription = false;
+                        }
+                    }
                     
                     let attendeeString = attendeeNSString?.replacingOccurrences(of: ICS.attendee, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
                     
