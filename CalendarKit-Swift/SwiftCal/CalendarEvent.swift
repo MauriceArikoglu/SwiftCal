@@ -24,13 +24,9 @@ public struct EventAttendee {
     }
 
     var url: String?
-
     public var name: String?
-
     public var email: String?
-
     public var status: String?
-
     public var role: AttendeeRole?
 }
 
