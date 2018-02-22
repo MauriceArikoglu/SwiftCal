@@ -263,6 +263,7 @@ class ICSEventParser: NSObject {
         var descriptionString: NSString?
         
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         eventScanner.scanUpTo(ICS.description, into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
 
