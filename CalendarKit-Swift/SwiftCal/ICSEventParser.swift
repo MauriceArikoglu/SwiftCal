@@ -17,6 +17,8 @@ class ICSEventParser: NSObject {
         static let transparent = "TRANSP:"
         static let summary = "SUMMARY:"
         static let status = "STATUS:"
+        static let organizer = "ORGANIZER;"
+        static let organizer2 = "ORGANIZER:"
         static let sequence = "SEQUENCE:"
         static let location = "LOCATION:"
         static let lastModified = "LAST-MODIFIED:"
@@ -37,13 +39,13 @@ class ICSEventParser: NSObject {
     }
 
     static func event(from icsString: String) -> CalendarEvent? {
-        
-        guard let timezone = timezone(from: icsString) else { return nil }
-        
+
+        let timeZone = timezone(from: icsString)
+
         let dateFormatter = DateFormatter()
-        
-        guard let startDateString = startDate(from: icsString, timezone: timezone),
-            let endDateString = endDate(from: icsString, timezone: timezone),
+
+        guard let startDateString = startDate(from: icsString, timezone: timeZone),
+            let endDateString = endDate(from: icsString, timezone: timeZone),
             let uniqueId = uniqueIdentifier(from: icsString)
             else { return nil }
         
@@ -82,7 +84,9 @@ class ICSEventParser: NSObject {
         }
         
         event.attendees = attendees(from: icsString)
-        
+
+        event.organizerEmail = organizerEmail(from: icsString)
+
         event.title = summary(from: icsString)
         event.notes = description(from: icsString)
         
@@ -98,6 +102,7 @@ class ICSEventParser: NSObject {
         }
         
         if let recurrenceRule = recurrenceRule(from: icsString) {
+            event.recurrenceRuleString = recurrenceRule
             event.recurrenceRule = eventRule(from: recurrenceRule)
         }
 
@@ -186,7 +191,27 @@ class ICSEventParser: NSObject {
         
         return statusString?.replacingOccurrences(of: ICS.status, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
-    
+
+    private static func organizerEmail(from icsString: String) -> String? {
+
+        var organizerEmailString: NSString?
+
+        let eventScanner = Scanner(string: icsString)
+        eventScanner.scanUpTo(ICS.organizer, into: nil)
+        if eventScanner.isAtEnd {
+            eventScanner.scanLocation = 0
+            eventScanner.scanUpTo(ICS.organizer2, into: nil)
+        }
+        eventScanner.scanUpTo("mailto:", into: nil)
+        eventScanner.scanUpTo("\n", into: &organizerEmailString)
+
+        if let organizerEmailString = organizerEmailString {
+            return organizerEmailString.replacingOccurrences(of: "mailto:", with: "", options: .caseInsensitive, range: NSMakeRange(0, organizerEmailString.length)).trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+        }
+
+        return nil
+    }
+
     private static func sequence(from icsString: String) -> String? {
         
         var sequenceString: NSString?
@@ -203,10 +228,23 @@ class ICSEventParser: NSObject {
         var locationString: NSString?
         
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         eventScanner.scanUpTo(ICS.location, into: nil)
         eventScanner.scanUpTo("\n", into: &locationString)
-        
-        return locationString?.replacingOccurrences(of: ICS.location, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                locationString = locationString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
+
+        return locationString?.replacingOccurrences(of: ICS.location, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
     
     private static func lastModified(from icsString: String) -> String? {
@@ -227,8 +265,33 @@ class ICSEventParser: NSObject {
         let eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICS.description, into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
-        
-        return descriptionString?.replacingOccurrences(of: ICS.description, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+
+        // a multi-line description can have newline characters
+        // as per ICS protocol, the newline characters within a field should be represented by \\n
+        // however, some ICS files don't follow this rule and use the actual newline character (\n) instead
+        // the way to differentiate between this \n and the \n that acts as a delimiter between different fields in the ICS file is that
+        // the newline that starts after this \n has an empty string prefix
+        // are characters within the description and not delimiters, since they start with a space or tab
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                descriptionString = descriptionString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
+
+        return descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+    }
+
+    private static func newlineCharacterSet() -> CharacterSet {
+        var skipCharacterSet = CharacterSet()
+        skipCharacterSet.insert(charactersIn: "\n")
+        skipCharacterSet.insert(charactersIn: "\r\n")
+        return skipCharacterSet
     }
     
     private static func createdDate(from icsString: String) -> String? {
@@ -260,18 +323,34 @@ class ICSEventParser: NSObject {
         var attendees = [EventAttendee]()
         
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         
         var scanStatus = false;
         
         repeat {
         
             var attendeeNSString: NSString?
-            
-            if eventScanner.scanUpTo(ICS.attendee, into: nil) {
-                
+
+            if eventScanner.scanString(ICS.attendee, into: nil) ||
+                (eventScanner.scanUpTo(ICS.attendee, into: nil) && !eventScanner.isAtEnd) {
+
                 scanStatus = eventScanner.scanUpTo("\n", into: &attendeeNSString)
                 
                 if scanStatus {
+
+                    var isMultiLineDescription = true;
+
+                    while isMultiLineDescription {
+                        var nextLine: NSString?
+                        let originalScanLocation = eventScanner.scanLocation
+                        eventScanner.scanUpTo("\n", into: &nextLine)
+                        if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                            attendeeNSString = attendeeNSString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+                        } else {
+                            eventScanner.scanLocation = originalScanLocation
+                            isMultiLineDescription = false;
+                        }
+                    }
                     
                     let attendeeString = attendeeNSString?.replacingOccurrences(of: ICS.attendee, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
                     
@@ -315,16 +394,15 @@ class ICSEventParser: NSObject {
         }
         
         eventScanner = Scanner(string: attributes)
-        var placeholder: NSString?
-        
+        var roleString: NSString?
+
         eventScanner.scanUpTo("ROLE=", into: nil)
-        eventScanner.scanUpTo(";", into: &placeholder)
-        
-        let role = placeholder?.replacingOccurrences(of: "ROLE=", with: "")
-        
-        if role != nil {
-            
-            switch role! {
+        eventScanner.scanUpTo(";", into: &roleString)
+
+        if let roleString = roleString {
+            let role = roleString.replacingOccurrences(of: "ROLE=", with: "", options: .caseInsensitive, range: NSMakeRange(0, roleString.length))
+
+            switch role {
             case "CHAIR":
                 attendee.role = EventAttendee.AttendeeRole.chair
             case "REQ-PARTICIPANT":
@@ -337,13 +415,31 @@ class ICSEventParser: NSObject {
                 attendee.role = nil
             }
         }
-        
-        eventScanner = Scanner(string: attributes)
-        eventScanner.scanUpTo("CN=", into: nil)
-        eventScanner.scanUpTo(";", into: &placeholder)
-        
-        attendee.name = placeholder?.replacingOccurrences(of: "CN=", with: "")
-        
+
+        var status: NSString?
+        let statusScanner = Scanner(string: icsString)
+        statusScanner.scanUpTo("PARTSTAT=", into: nil)
+        statusScanner.scanUpTo(";", into: &status)
+        if let status = status {
+            attendee.status = status.replacingOccurrences(of: "PARTSTAT=", with: "", options: .caseInsensitive, range: NSMakeRange(0, status.length))
+        }
+
+        var commonName: NSString?
+        let commonNameScanner = Scanner(string: attributes)
+        commonNameScanner.scanUpTo("CN=", into: nil)
+        commonNameScanner.scanUpTo(";", into: &commonName)
+        if let commonName = commonName {
+            attendee.name = commonName.replacingOccurrences(of: "CN=", with: "", options: .caseInsensitive, range: NSMakeRange(0, commonName.length))
+        }
+
+        var email: NSString?
+        let emailScanner = Scanner(string: icsString)
+        emailScanner.scanUpTo("mailto:", into: nil)
+        emailScanner.scanUpTo(";", into: &email)
+        if let email = email {
+            attendee.email = email.replacingOccurrences(of: "mailto:", with: "", options: .caseInsensitive, range: NSMakeRange(0, email.length))
+        }
+
         return attendee
     }
     
@@ -368,20 +464,22 @@ class ICSEventParser: NSObject {
         
         return timestampString?.replacingOccurrences(of: ICS.timestamp, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
-    
-    private static func endDate(from icsString: String, timezone: String) -> String? {
-        
+
+    private static func endDate(from icsString: String, timezone: String?) -> String? {
+
         var endDateNSString: NSString?
         var endDateString: String?
         
         var eventScanner = Scanner(string: icsString)
-        let mergedSearchString = String.init(format: ICS.endDateAndTimezone, timezone)
+        if let timezone = timezone {
+            let mergedSearchString = String.init(format: ICS.endDateAndTimezone, timezone)
 
-        eventScanner.scanUpTo(mergedSearchString, into: nil)
-        eventScanner.scanUpTo("\n", into: &endDateNSString)
-        
-        endDateString = endDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
-        
+            eventScanner.scanUpTo(mergedSearchString, into: nil)
+            eventScanner.scanUpTo("\n", into: &endDateNSString)
+
+            endDateString = endDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+        }
+
         if (endDateString == nil) {
             
             eventScanner = Scanner(string: icsString)
@@ -402,19 +500,21 @@ class ICSEventParser: NSObject {
 
         return endDateString
     }
-    
-    private static func startDate(from icsString: String, timezone: String) -> String? {
-        
+
+    private static func startDate(from icsString: String, timezone: String?) -> String? {
+
         var startDateNSString: NSString?
         var startDateString: String?
 
         var eventScanner = Scanner(string: icsString)
-        let mergedSearchString = String.init(format: ICS.startDateAndTimezone, timezone)
-        
-        eventScanner.scanUpTo(mergedSearchString, into: nil)
-        eventScanner.scanUpTo("\n", into: &startDateNSString)
-        
-        startDateString = startDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+        if let timezone = timezone {
+            let mergedSearchString = String.init(format: ICS.startDateAndTimezone, timezone)
+
+            eventScanner.scanUpTo(mergedSearchString, into: nil)
+            eventScanner.scanUpTo("\n", into: &startDateNSString)
+
+            startDateString = startDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
+        }
 
         if (startDateString == nil) {
             
@@ -597,3 +697,4 @@ extension DateFormatter {
         }
     }
 }
+
