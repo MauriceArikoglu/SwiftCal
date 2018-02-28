@@ -10,7 +10,7 @@ import UIKit
 
 public class SwiftCal: NSObject {
 
-    var events = [CalendarEvent]()
+    public var events = [CalendarEvent]()
     public var timezone: NSTimeZone?
     
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
@@ -81,3 +81,4 @@ public class Read {
         return calendar
     }
 }
+
