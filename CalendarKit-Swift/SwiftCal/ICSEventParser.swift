@@ -23,6 +23,7 @@ class ICSEventParser: NSObject {
         static let location = "LOCATION:"
         static let lastModified = "LAST-MODIFIED:"
         static let description = "DESCRIPTION:"
+        static let description2 = "DESCRIPTION;"
         static let created = "CREATED:"
         static let recurrenceId = "RECURRENCE-ID;TZID=%@"
         static let attendee = "ATTENDEE;"
@@ -38,7 +39,7 @@ class ICSEventParser: NSObject {
         static let timezoneStartDateAndTimezone = "DTSTART;TZID="
     }
 
-    static func event(from icsString: String) -> CalendarEvent? {
+    static func event(from icsString: String, calendarTimezone: TimeZone? = nil) -> CalendarEvent? {
 
         let timeZone = timezone(from: icsString)
 
@@ -49,10 +50,10 @@ class ICSEventParser: NSObject {
             let uniqueId = uniqueIdentifier(from: icsString)
             else { return nil }
         
-        let startDateInfo = dateFormatter.dateFromICSString(icsDate: startDateString)
-        
+        let startDateInfo = dateFormatter.dateFromICSString(icsDate: startDateString, calendarTimezone: calendarTimezone)
+
         guard let startDate = startDateInfo.date,
-            let endDate = dateFormatter.dateFromICSString(icsDate: endDateString).date
+            let endDate = dateFormatter.dateFromICSString(icsDate: endDateString, calendarTimezone: calendarTimezone).date
             else { return nil }
         
         let event = CalendarEvent(startDate: startDate, endDate: endDate, uniqueId: uniqueId)
@@ -261,11 +262,22 @@ class ICSEventParser: NSObject {
     private static func description(from icsString: String) -> String? {
         
         var descriptionString: NSString?
-        
-        let eventScanner = Scanner(string: icsString)
+
+        var eventScanner = Scanner(string: icsString)
         eventScanner.charactersToBeSkipped = newlineCharacterSet()
         eventScanner.scanUpTo(ICS.description, into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
+
+        // Handle description that has the language tag e.g.
+        // `DESCRIPTION;LANGUAGE=en-US:Dear Gary, Attached is the ...`
+        if descriptionString == nil {
+            eventScanner = Scanner(string: icsString)
+            eventScanner.charactersToBeSkipped = newlineCharacterSet()
+            eventScanner.scanUpTo(ICS.description2, into: nil)
+            eventScanner.scanUpTo(":", into: nil)
+            eventScanner.scanString(":", into: nil)
+            eventScanner.scanUpTo("\n", into: &descriptionString)
+        }
 
         // a multi-line description can have newline characters
         // as per ICS protocol, the newline characters within a field should be represented by \\n
@@ -547,6 +559,22 @@ class ICSEventParser: NSObject {
         var eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICS.timezoneStartDateAndTimezone, into: nil)
         eventScanner.scanUpTo(":", into: &timezoneNSString)
+
+        // Handle variations of timezone:
+        //   - `DTSTART;TZID="(UTC-05:00) Eastern Time (US & Canada)":20180320T133000` (has ":" in tzid)
+        //   - `DTSTART;TZID=Arabian Standard Time:20180225T110000`
+        eventScanner.scanString(":", into: nil)
+        var partialTimezoneString: NSString?
+        var tempString: NSString?
+
+        let cachedScanLocation = eventScanner.scanLocation
+        eventScanner.scanUpTo("\n", into: &tempString)
+
+        if let tempString = tempString, tempString.contains(":") {
+            eventScanner.scanLocation = cachedScanLocation
+            eventScanner.scanUpTo(":", into: &partialTimezoneString)
+            timezoneNSString = timezoneNSString?.appendingFormat(":%@", partialTimezoneString!)
+        }
         
         timezoneString = timezoneNSString?.replacingOccurrences(of: ICS.timezoneStartDateAndTimezone, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
 
@@ -671,23 +699,31 @@ extension DateFormatter {
         static let dateOnlyWithZone = "yyyyMMddz"
     }
     // Returns date and isAllDay boolean
-    func dateFromICSString(icsDate: String) -> (date: Date?, allDay: Bool) {
-        
+    func dateFromICSString(icsDate: String, calendarTimezone: TimeZone? = nil) -> (date: Date?, allDay: Bool) {
+
         self.dateFormat = ICSFormat.standard
-        
+
         let formattedString = icsDate.replacingOccurrences(of: "T", with: " ")
-        
-        let containsZone: Bool = (formattedString.lowercased().range(of: "z") != nil)
-        
-        if containsZone {
-            self.dateFormat = ICSFormat.withZone
-        }
-        
+
+        let containsTimezone: Bool = (formattedString.lowercased().range(of: "z") != nil)
+
         var date = self.date(from: formattedString)
+
+        if containsTimezone {
+            self.dateFormat = ICSFormat.withZone
+            date = self.date(from: formattedString)
+        } else if let calendarTimezone = calendarTimezone {
+            timeZone = TimeZone(secondsFromGMT: 0)
+            date = self.date(from: formattedString)
+            date?.addTimeInterval(TimeInterval(calendarTimezone.secondsFromGMT()))
+            if let givenDate = date {
+                date?.addTimeInterval(-TimeZone.current.daylightSavingTimeOffset(for: givenDate))
+            }
+        }
         
         if (date == nil) {
             
-            self.dateFormat = containsZone ? ICSFormat.dateOnlyWithZone : ICSFormat.dateOnly
+            self.dateFormat = containsTimezone ? ICSFormat.dateOnlyWithZone : ICSFormat.dateOnly
             
             date = self.date(from: formattedString)
             
