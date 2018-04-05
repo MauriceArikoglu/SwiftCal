@@ -11,7 +11,7 @@ import UIKit
 public class SwiftCal: NSObject {
 
     public var events = [CalendarEvent]()
-    public var timezone: NSTimeZone?
+    public var timezone: TimeZone?
     
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
         
@@ -45,39 +45,54 @@ public class SwiftCal: NSObject {
 }
 
 public class Read {
-    
+
     public static func swiftCal(from icsString: String) -> SwiftCal {
-        
+
         let formattedICS = icsString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         var calendarEvents = formattedICS.components(separatedBy: "BEGIN:VEVENT")
-        
+
+        var timezoneString: NSString?
+        let timezoneScanner = Scanner(string: icsString)
+        timezoneScanner.scanUpTo("BEGIN:VTIMEZONE", into: nil)
+        timezoneScanner.scanUpTo("END:VTIMEZONE", into: &timezoneString)
+
         let calendar = SwiftCal()
-        
+
         if calendarEvents.count > 0 {
-            
-            var calendarIdNSString: NSString?
-            
+
+            var timezoneId: NSString?
+            var timezoneOffset: NSString?
+
             let headerScanner = Scanner(string: calendarEvents.first!)
             headerScanner.scanUpTo("TZID:", into: nil)
-            headerScanner.scanUpTo("\n", into: &calendarIdNSString)
-            
-            if let timezone = calendarIdNSString?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: CharacterSet.newlines) {
+            headerScanner.scanUpTo("\n", into: &timezoneId)
+            headerScanner.scanUpTo("TZOFFSETTO:", into: nil)
+            headerScanner.scanUpTo("\n", into: &timezoneOffset)
 
-//                print("Calendar Timezone: \(timezone)")
-                
-                calendar.timezone = NSTimeZone(name: timezone)
-
+            if let timezoneId = timezoneId?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: .newlines),
+                let timezoneOffset = timezoneOffset?.replacingOccurrences(of: "TZOFFSETTO:", with: "").trimmingCharacters(in: .newlines) {
+                // timezoneoffset e.g. +0430 indicating 4 hours 30 mins ahead of UTC
+                if timezoneOffset.count == 5 {
+                    let isAhead = timezoneOffset.first == "+"
+                    let hoursString = timezoneOffset.dropFirst().dropLast(2)
+                    let minutesString = timezoneOffset.dropFirst(3)
+                    if let hours = Int(hoursString), let minutes = Int(minutesString) {
+                        let offset = hours * 60 * 60 + minutes * 60
+                        let offsetFromUTC = isAhead ? -offset : offset
+                        calendar.timezone = TimeZone(secondsFromGMT: Int(offsetFromUTC))
+                    }
+                }
             }
-            
+
             calendarEvents.remove(at: 0)
         }
-        
+
         for event in calendarEvents {
-            
-            guard let calendarEvent = ICSEventParser.event(from: event) else { continue }
+
+            guard let calendarEvent = ICSEventParser.event(from: event, calendarTimezone: calendar.timezone) else { continue }
             calendar.addEvent(calendarEvent)
         }
-        
+
         return calendar
     }
 }
