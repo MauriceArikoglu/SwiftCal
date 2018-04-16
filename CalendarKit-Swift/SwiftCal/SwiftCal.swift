@@ -66,6 +66,7 @@ public class Read {
             let headerScanner = Scanner(string: calendarEvents.first!)
             headerScanner.scanUpTo("TZID:", into: nil)
             headerScanner.scanUpTo("\n", into: &timezoneId)
+            headerScanner.scanUpTo("BEGIN:STANDARD", into: nil)
             headerScanner.scanUpTo("TZOFFSETTO:", into: nil)
             headerScanner.scanUpTo("\n", into: &timezoneOffset)
 
