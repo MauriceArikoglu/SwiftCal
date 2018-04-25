@@ -12,36 +12,39 @@ public class SwiftCal: NSObject {
 
     public var events = [CalendarEvent]()
     public var timezone: TimeZone?
-    
+
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
-        
+
         events.append(event)
         return events.count
     }
-    
+
     public func events(for date: Date) -> [CalendarEvent] {
-        
+
         var eventsForDate = [CalendarEvent]()
-        
-        for event in events {
-            if event.takesPlaceOnDate(date) { eventsForDate.append(event) }
+
+        for event in events where event.takesPlaceOnDate(date) {
+            eventsForDate.append(event)
         }
-        
+
         eventsForDate = eventsForDate.sorted(by: { (e1, e2) in
             //We compare time only because initial start dates might be different because of recurrence
             let calendar = Calendar.current
-            guard let sd1 = e1.startDate,
+            guard
+                let sd1 = e1.startDate,
                 let sd2 = e2.startDate,
-            let compareDate1 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd1)),
-            let compareDate2 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd2))
-                else { return false }
-            
+                let compareDate1 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd1)),
+                let compareDate2 = calendar.date(from: calendar.dateComponents([.hour, .minute, .second], from: sd2))
+                else {
+                    return false
+            }
+
             return compareDate1 < compareDate2
         })
-        
+
         return eventsForDate
     }
-    
+
 }
 
 public class Read {
@@ -69,7 +72,7 @@ public class Read {
             headerScanner.scanUpTo("TZOFFSETTO:", into: nil)
             headerScanner.scanUpTo("\n", into: &timezoneOffset)
 
-            if let timezoneId = timezoneId?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: .newlines),
+            if let _ = timezoneId?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: .newlines),
                 let timezoneOffset = timezoneOffset?.replacingOccurrences(of: "TZOFFSETTO:", with: "").trimmingCharacters(in: .newlines) {
                 // timezoneoffset e.g. +0430 indicating 4 hours 30 mins ahead of UTC
                 if timezoneOffset.count == 5 {
@@ -89,11 +92,14 @@ public class Read {
 
         for event in calendarEvents {
 
-            guard let calendarEvent = ICSEventParser.event(from: event, calendarTimezone: calendar.timezone) else { continue }
+            guard
+                let calendarEvent = ICSEventParser.event(from: event, calendarTimezone: calendar.timezone)
+                else {
+                    continue
+            }
             calendar.addEvent(calendarEvent)
         }
 
         return calendar
     }
 }
-

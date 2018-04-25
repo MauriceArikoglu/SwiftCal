@@ -13,7 +13,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
+
         do {
             let file = try String(contentsOfFile: Bundle.main.path(forResource: "university-formatted", ofType: "ics") ?? "")
             let swiftCal = Read.swiftCal(from: file)
@@ -24,7 +24,7 @@ class ViewController: UIViewController {
                 print(event.startDate ?? "")
             }
         } catch {
-            
+            fatalError("Something went wrong, check your ics file.")
         }
     }
 
@@ -33,6 +33,4 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
 }
-
