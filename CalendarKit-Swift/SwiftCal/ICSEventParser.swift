@@ -70,9 +70,10 @@ struct ICSEventParser {
         event.notes = description(from: icsString)
 
         event.location = location(from: icsString)
-        
-        event.exceptionDates = exceptionDates(from: icsString)
-            .compactMap({ dateFormatter.dateFromICSString(icsDate: $0).date })
+
+        event.exceptionDates = exceptionDates(from: icsString).compactMap({
+            dateFormatter.dateFromICSString(icsDate: $0).date
+        })
 
         if let exceptionRule = exceptionRule(from: icsString) {
             event.exceptionRule = eventRule(from: exceptionRule)
@@ -103,7 +104,7 @@ struct ICSEventParser {
 
             let exceptionString = exceptionNSString?.replacingOccurrences(of: ":", with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
 
-            if (exceptionString != nil) {
+            if exceptionString != nil {
 
                 exceptions.append(exceptionString!)
             }
@@ -333,7 +334,8 @@ struct ICSEventParser {
                         var nextLine: NSString?
                         let originalScanLocation = eventScanner.scanLocation
                         eventScanner.scanUpTo("\n", into: &nextLine)
-                        if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                        if let nextLine = nextLine,
+                            nextLine.hasPrefix(" ") {
                             attendeeNSString = attendeeNSString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
                         } else {
                             eventScanner.scanLocation = originalScanLocation
@@ -341,18 +343,14 @@ struct ICSEventParser {
                         }
                     }
 
-                    let attendeeString = attendeeNSString?.replacingOccurrences(of: ICSEventKey.attendee, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
-
                     // Create attendee from String
-                    if (attendeeString != nil) {
-
-                        let attendee = self.attendee(from: attendeeString!)
-
-                        if (attendee != nil) {
-
-                            attendees.append(attendee!)
-                        }
+                    guard
+                        let attendeeString = attendeeNSString?.replacingOccurrences(of: ICSEventKey.attendee, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS(),
+                        let attendee = self.attendee(from: attendeeString)
+                        else {
+                            continue
                     }
+                    attendees.append(attendee)
                 }
             } else {
 
@@ -378,8 +376,10 @@ struct ICSEventParser {
             attendee.url = url!.length > 1 ? String(url!.substring(from: 1)) : nil
         }
 
-        guard let attributes = attributesNS as String? else {
-            return nil
+        guard
+            let attributes = attributesNS as String?
+            else {
+                return nil
         }
 
         eventScanner = Scanner(string: attributes)
@@ -410,7 +410,10 @@ struct ICSEventParser {
         statusScanner.scanUpTo("PARTSTAT=", into: nil)
         statusScanner.scanUpTo(";", into: &status)
         if let status = status {
-            attendee.status = status.replacingOccurrences(of: "PARTSTAT=", with: "", options: .caseInsensitive, range: NSMakeRange(0, status.length))
+            attendee.status = status.replacingOccurrences(of: "PARTSTAT=",
+                                                          with: "",
+                                                          options: .caseInsensitive,
+                                                          range: NSMakeRange(0, status.length))
         }
 
         var commonName: NSString?
@@ -418,7 +421,10 @@ struct ICSEventParser {
         commonNameScanner.scanUpTo("CN=", into: nil)
         commonNameScanner.scanUpTo(";", into: &commonName)
         if let commonName = commonName {
-            attendee.name = commonName.replacingOccurrences(of: "CN=", with: "", options: .caseInsensitive, range: NSMakeRange(0, commonName.length))
+            attendee.name = commonName.replacingOccurrences(of: "CN=",
+                                                            with: "",
+                                                            options: .caseInsensitive,
+                                                            range: NSMakeRange(0, commonName.length))
         }
 
         var email: NSString?
@@ -426,7 +432,10 @@ struct ICSEventParser {
         emailScanner.scanUpTo("mailto:", into: nil)
         emailScanner.scanUpTo(";", into: &email)
         if let email = email {
-            attendee.email = email.replacingOccurrences(of: "mailto:", with: "", options: .caseInsensitive, range: NSMakeRange(0, email.length))
+            attendee.email = email.replacingOccurrences(of: "mailto:",
+                                                        with: "",
+                                                        options: .caseInsensitive,
+                                                        range: NSMakeRange(0, email.length))
         }
 
         return attendee
@@ -469,7 +478,7 @@ struct ICSEventParser {
             endDateString = endDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
         }
 
-        if (endDateString == nil) {
+        if endDateString == nil {
 
             eventScanner = Scanner(string: icsString)
             eventScanner.scanUpTo(ICSEventKey.endDate, into: nil)
@@ -477,7 +486,7 @@ struct ICSEventParser {
 
             endDateString = endDateNSString?.replacingOccurrences(of: ICSEventKey.endDate, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
 
-            if (endDateString == nil) {
+            if endDateString == nil {
 
                 eventScanner = Scanner(string: icsString)
                 eventScanner.scanUpTo(ICSEventKey.endDateValueDate, into: nil)
@@ -505,7 +514,7 @@ struct ICSEventParser {
             startDateString = startDateNSString?.replacingOccurrences(of: mergedSearchString, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
         }
 
-        if (startDateString == nil) {
+        if startDateString == nil {
 
             eventScanner = Scanner(string: icsString)
             eventScanner.scanUpTo(ICSEventKey.startDate, into: nil)
@@ -513,7 +522,7 @@ struct ICSEventParser {
 
             startDateString = startDateNSString?.replacingOccurrences(of: ICSEventKey.startDate, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
 
-            if (startDateString == nil) {
+            if startDateString == nil {
 
                 eventScanner = Scanner(string: icsString)
                 eventScanner.scanUpTo(ICSEventKey.startDateValueDate, into: nil)
@@ -557,7 +566,7 @@ struct ICSEventParser {
             switch rule {
             case let rule where (rule?.range(of: Rule.frequency) != nil):
                 ruleset.frequency = parsedRule
-                
+
             case let rule where (rule?.range(of: Rule.count) != nil):
                 ruleset.count = Int(parsedRule)
 
@@ -570,16 +579,16 @@ struct ICSEventParser {
 
             case let rule where (rule?.range(of: Rule.day) != nil):
                 ruleset.byDay = parsedRule.components(separatedBy: ",")
-                
+
             case let rule where (rule?.range(of: Rule.dayOfMonth) != nil):
                 ruleset.byDayOfMonth = parsedRule.components(separatedBy: ",")
-                
+
             case let rule where (rule?.range(of: Rule.dayOfYear) != nil):
                 ruleset.byDayOfYear = parsedRule.components(separatedBy: ",")
-                
+
             case let rule where (rule?.range(of: Rule.weekOfYear) != nil):
                 ruleset.byWeekOfYear = parsedRule.components(separatedBy: ",")
-                
+
             case let rule where (rule?.range(of: Rule.month) != nil):
                 ruleset.byMonth = parsedRule.components(separatedBy: ",")
 
@@ -665,7 +674,7 @@ extension DateFormatter {
             }
         }
 
-        if (date == nil) {
+        if date == nil {
 
             self.dateFormat = containsTimezone ? ICSFormat.dateOnlyWithZone : ICSFormat.dateOnly
 

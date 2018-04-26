@@ -16,7 +16,7 @@ enum GregorianCalendarWeek: Int {
     case thursday
     case friday
     case saturday
-    
+
     func icsIdentifier() -> String {
         switch self.rawValue {
         case 1:
@@ -37,7 +37,7 @@ enum GregorianCalendarWeek: Int {
             return ""
         }
     }
-    
+
     static func fromICS(ics: String) -> GregorianCalendarWeek? {
         switch ics {
         case "SU":

@@ -20,7 +20,7 @@ class ViewController: UIViewController {
 //            let eventsForToday = swiftCal.events(for: Date().addingTimeInterval(86400 * 1))
 
             for event in swiftCal.allEvents {
-                
+
                 guard
                     let title = event.title,
                     let start = event.startDate

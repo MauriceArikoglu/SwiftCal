@@ -22,15 +22,15 @@ public class SwiftCal {
     private var eventStore = [CalendarEvent]()
 
     init(icsFileContent: String) throws {
-        
+
         let formattedICS = icsFileContent.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        
+
         guard
             formattedICS.count > 0
         else {
             throw SwiftCalError.emptyICS
         }
-        
+
         do {
             guard
                 let timezone = try TimeZone(formattedICS: formattedICS)
@@ -41,9 +41,11 @@ public class SwiftCal {
         } catch {
             throw error
         }
-        
-        let calendarEventsICS = formattedICS.components(separatedBy: ICSEventKey.eventBegin).compactMap({ $0.contains(ICSEventKey.eventEnd) ? $0 : nil })
-                
+
+        let calendarEventsICS = formattedICS.components(separatedBy: ICSEventKey.eventBegin).compactMap({
+            $0.contains(ICSEventKey.eventEnd) ? $0 : nil
+        })
+
         for event in calendarEventsICS {
             guard
                 let calendarEvent = ICSEventParser.event(from: event, calendarTimezone: self.timezone)
@@ -57,23 +59,23 @@ public class SwiftCal {
 }
 
 extension SwiftCal {
-    
+
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
-        
+
         eventStore.append(event)
         return allEvents.count
     }
-    
+
     public func events(for date: Date) -> [CalendarEvent] {
-        
+
         var eventsForDate = [CalendarEvent]()
-        
+
         for event in eventStore where event.takesPlaceOnDate(date) {
             eventsForDate.append(event)
         }
-        
+
         eventsForDate = eventsForDate.sorted(by: { (e1, e2) in
-            //We compare time only because initial start dates might be different because of recurrence
+            // We compare time only because initial start dates might be different because of recurrence
             let calendar = Calendar.current
             guard
                 let sd1 = e1.startDate,
@@ -83,10 +85,10 @@ extension SwiftCal {
                 else {
                     return false
             }
-            
+
             return compareDate1 < compareDate2
         })
-        
+
         return eventsForDate
     }
 
