@@ -15,21 +15,21 @@ public class SwiftCal: NSObject {
     public var timezone: TimeZone?
 
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
-        
+
         eventStore.append(event)
         return allEvents.count
     }
-    
+
     public func events(for date: Date) -> [CalendarEvent] {
-        
+
         var eventsForDate = [CalendarEvent]()
-        
+
         for event in eventStore where event.takesPlaceOnDate(date) {
             eventsForDate.append(event)
         }
-        
+
         eventsForDate = eventsForDate.sorted(by: { (e1, e2) in
-            //We compare time only because initial start dates might be different because of recurrence
+            // We compare time only because initial start dates might be different because of recurrence
             let calendar = Calendar.current
             guard
                 let sd1 = e1.startDate,
@@ -39,10 +39,10 @@ public class SwiftCal: NSObject {
                 else {
                     return false
             }
-            
+
             return compareDate1 < compareDate2
         })
-        
+
         return eventsForDate
     }
 

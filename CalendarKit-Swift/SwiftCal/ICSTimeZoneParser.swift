@@ -32,7 +32,7 @@ END:VTIMEZONE
 */
 
 struct TimeZoneTime {
-    
+
     var isDaylightSaving: Bool
     var startDate: Date!
     var name: String!
@@ -40,7 +40,7 @@ struct TimeZoneTime {
 
     var offsetFrom: Int
     var offsetTo: Int
-    
+
     init(daylightSaving: Bool) {
         self.isDaylightSaving = daylightSaving
         self.offsetTo = 0
@@ -56,25 +56,25 @@ public enum TimeZoneError: Error {
 }
 
 extension TimeZone {
-    
+
     init?(formattedICS: String) throws {
         var timezoneNSString: NSString?
         let timezoneScanner = Scanner(string: formattedICS)
         timezoneScanner.scanUpTo(ICSEventKey.timezoneBegin, into: nil)
         timezoneScanner.scanUpTo(ICSEventKey.timezoneEnd, into: &timezoneNSString)
-        
+
         guard
             let unwrappedTimezoneString = timezoneNSString
             else {
                 throw TimeZoneError.missingTimeZoneInfo
         }
-        
+
         let timezoneICS = String(unwrappedTimezoneString)
-        
+
         guard
             let timeZoneId = ICSTimeZoneParser.timeZoneIdentifier(from: timezoneICS)
             else {
-                
+
                 let timeZoneTimes = ICSTimeZoneParser.timeZoneTimes(from: timezoneICS)
                 guard
                     let daylightTime = timeZoneTimes?.daylightSavings,
@@ -88,23 +88,23 @@ extension TimeZone {
                     else {
                         throw TimeZoneError.missingTimeZoneTimeInfo
                 }
-                
+
                 self = timezone
                 return
         }
-        
+
         guard
             let timezone = TimeZone(identifier: timeZoneId)
             else {
                throw TimeZoneError.invalidTimeZoneId
         }
-        
+
         self = timezone
-        
+
     }
-    
+
     init?(daylightTime: TimeZoneTime, standardTime: TimeZoneTime) {
-        
+
         guard
             let daylightMonthString = daylightTime.rrule.byMonth?.first,
             let standardMonthString = standardTime.rrule.byMonth?.first,
@@ -115,7 +115,7 @@ extension TimeZone {
             else {
                 return nil
         }
-        
+
         let daylightWeekDayString = String(daylightDay[daylightDay.index(daylightDay.endIndex, offsetBy: -2)...])
         let standardWeekDayString = String(standardDay[standardDay.index(standardDay.endIndex, offsetBy: -2)...])
 
@@ -127,14 +127,14 @@ extension TimeZone {
 
         var daylightDate: Date!
         var standardDate: Date!
-        
+
         if prefixDaylight.count > 0 {
             let ordinalDaylight = Int(prefixDaylight)
             daylightDate = Date().set(month: daylightMonth, weekday: daylightWeekDay, ordinal: ordinalDaylight)
         } else {
             daylightDate = Date().set(month: daylightMonth, weekday: daylightWeekDay)
         }
-        
+
         if prefixStandard.count > 0 {
             let ordinalStandard = Int(prefixStandard)
             standardDate = Date().set(month: standardMonth, weekday: standardWeekDay, ordinal: ordinalStandard)
@@ -143,7 +143,7 @@ extension TimeZone {
         }
 
         let currentDate = Date()
-        
+
         if daylightDate < standardDate {
             // Daylight date is earlier in year than standard date
             if (daylightDate...standardDate).contains(currentDate) {
@@ -156,7 +156,7 @@ extension TimeZone {
                         self.init(secondsFromGMT: daylightTime.offsetTo)
                         return
                 }
-                
+
                 self = timezone
                 return
             } else {
@@ -168,7 +168,7 @@ extension TimeZone {
                         self.init(secondsFromGMT: standardTime.offsetTo)
                         return
                 }
-                
+
                 self = timezone
                 return
             }
@@ -182,7 +182,7 @@ extension TimeZone {
                         self.init(secondsFromGMT: standardTime.offsetTo)
                         return
                 }
-                
+
                 self = timezone
                 return
             } else {
@@ -195,60 +195,60 @@ extension TimeZone {
                         self.init(secondsFromGMT: daylightTime.offsetTo)
                         return
                 }
-                
+
                 self = timezone
                 return
             }
         }
-        
+
     }
-    
+
 }
 
 struct ICSTimeZoneParser {
- 
+
     public static func timeZoneIdentifier(from icsString: String) -> String? {
-        
+
         var timezoneNSString: NSString?
         var timezoneString: String?
-        
+
         var eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICSEventKey.timezoneStartDateAndTimezone, into: nil)
         eventScanner.scanUpTo(":", into: &timezoneNSString)
-        
+
         // Handle variations of timezone:
         //   - `DTSTART;TZID="(UTC-05:00) Eastern Time (US & Canada)":20180320T133000` (has ":" in tzid)
         //   - `DTSTART;TZID=Arabian Standard Time:20180225T110000`
         eventScanner.scanString(":", into: nil)
         var partialTimezoneString: NSString?
         var tempString: NSString?
-        
+
         let cachedScanLocation = eventScanner.scanLocation
         eventScanner.scanUpTo("\n", into: &tempString)
-        
+
         if let tempString = tempString, tempString.contains(":") {
             eventScanner.scanLocation = cachedScanLocation
             eventScanner.scanUpTo(":", into: &partialTimezoneString)
             timezoneNSString = timezoneNSString?.appendingFormat(":%@", partialTimezoneString!)
         }
-        
+
         timezoneString = timezoneNSString?.replacingOccurrences(of: ICSEventKey.timezoneStartDateAndTimezone, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
-        
+
         if timezoneString == nil {
-            
+
             eventScanner = Scanner(string: icsString)
             eventScanner.scanUpTo(ICSEventKey.timezone, into: nil)
             eventScanner.scanUpTo("\n", into: &timezoneNSString)
-            
+
             timezoneString = timezoneNSString?.replacingOccurrences(of: ICSEventKey.timezone, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
-            
+
         }
-        
+
         return timezoneString
     }
-    
+
     public static func timeZoneTimes(from icsString: String) -> (daylightSavings: TimeZoneTime, standard: TimeZoneTime)? {
-        
+
         var daylightNSString: NSString?
         /*
          BEGIN:DAYLIGHT
@@ -262,7 +262,7 @@ struct ICSTimeZoneParser {
         let daylightScanner = Scanner(string: icsString)
         daylightScanner.scanUpTo(ICSEventKey.daylightBegin, into: nil)
         daylightScanner.scanUpTo(ICSEventKey.daylightEnd, into: &daylightNSString)
-        
+
         var standardNSString: NSString?
         /*
          BEGIN:STANDARD
@@ -276,28 +276,28 @@ struct ICSTimeZoneParser {
         let standardScanner = Scanner(string: icsString)
         standardScanner.scanUpTo(ICSEventKey.standardBegin, into: nil)
         standardScanner.scanUpTo(ICSEventKey.standardEnd, into: &standardNSString)
-        
+
         guard
             let daylightInfo = daylightNSString,
             let standardInfo = standardNSString
             else {
                 return nil
         }
-        
+
         guard
             let daylightTime = timeZoneTime(from: String(daylightInfo), daylightSaving: true),
             let standardTime = timeZoneTime(from: String(standardInfo), daylightSaving: false)
             else {
                 return nil
         }
-        
+
         return (daylightTime, standardTime)
     }
-    
+
     private static func timeZoneTime(from icsString: String, daylightSaving: Bool) -> TimeZoneTime? {
-        
+
         var timezone = TimeZoneTime(daylightSaving: daylightSaving)
-        
+
         guard
             let offsetFromString = timeZoneOffsetFrom(from: icsString),
             let offsetToString = timeZoneOffsetTo(from: icsString),
@@ -313,7 +313,7 @@ struct ICSTimeZoneParser {
             else {
                 return nil
         }
-        
+
         guard
             let hoursFrom = Int(offsetFromString.dropFirst().dropLast(2)),
             let minutesFrom = Int(offsetFromString.dropFirst(3)),
@@ -322,10 +322,10 @@ struct ICSTimeZoneParser {
             else {
                 return nil
         }
-        
+
         let isToAhead = offsetToString.first == "+"
         let isFromAhead = offsetFromString.first == "-"
-        
+
         timezone.name = timezoneName
         timezone.startDate = startDate
         timezone.offsetFrom = (hoursFrom * 60 * 60) + (minutesFrom * 60) * (isFromAhead ? 1 : -1)
@@ -334,38 +334,38 @@ struct ICSTimeZoneParser {
 
         return timezone
     }
- 
+
     private static func timeZoneOffsetFrom(from icsString: String) -> String? {
-        
+
         var offsetString: NSString?
-        
+
         let eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICSEventKey.timezoneOffsetFrom, into: nil)
         eventScanner.scanUpTo("\n", into: &offsetString)
-        
+
         return offsetString?.replacingOccurrences(of: ICSEventKey.timezoneOffsetFrom, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
-    
+
     private static func timeZoneOffsetTo(from icsString: String) -> String? {
-        
+
         var offsetString: NSString?
-        
+
         let eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICSEventKey.timezoneOffsetTo, into: nil)
         eventScanner.scanUpTo("\n", into: &offsetString)
-        
+
         return offsetString?.replacingOccurrences(of: ICSEventKey.timezoneOffsetTo, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
 
     private static func timeZoneName(from icsString: String) -> String? {
-        
+
         var nameString: NSString?
-        
+
         let eventScanner = Scanner(string: icsString)
         eventScanner.scanUpTo(ICSEventKey.timezoneName, into: nil)
         eventScanner.scanUpTo("\n", into: &nameString)
-        
+
         return nameString?.replacingOccurrences(of: ICSEventKey.timezoneName, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
-    
+
 }

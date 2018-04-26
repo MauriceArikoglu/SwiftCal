@@ -9,7 +9,7 @@
 import Foundation
 
 internal struct ICSEventKey {
-    
+
     static let exceptionDate = "EXDATE;"
     static let exceptionRule = "EXRULE:"
     static let recurrenceRule = "RRULE:"
@@ -50,17 +50,17 @@ internal struct ICSEventKey {
 }
 
 extension Date {
-    
+
     public func set(month: Int, weekday: Int, ordinal: Int? = nil) -> Date {
-        
+
         let currentYear = Calendar.current.component(.year, from: self)
-        
+
         var components = DateComponents()
         components.year = currentYear
         components.month = month
         components.weekday = weekday
         components.weekdayOrdinal = ordinal
-        
+
         guard
             let date = Calendar.current.date(from: components)
             else {
@@ -69,5 +69,5 @@ extension Date {
         }
         return date
     }
-    
+
 }
