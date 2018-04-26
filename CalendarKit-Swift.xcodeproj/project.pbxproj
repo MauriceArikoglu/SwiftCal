@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		512ADA3A2090AFF7005F9AC2 /* CalendarTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA392090AFF7005F9AC2 /* CalendarTools.swift */; };
+		512ADA3B2090AFF7005F9AC2 /* CalendarTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA392090AFF7005F9AC2 /* CalendarTools.swift */; };
+		512ADA3D2090B042005F9AC2 /* ICS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA3C2090B042005F9AC2 /* ICS.swift */; };
+		512ADA3E2090B042005F9AC2 /* ICS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA3C2090B042005F9AC2 /* ICS.swift */; };
+		512ADA402090BA15005F9AC2 /* ICSTimeZoneParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA3F2090BA15005F9AC2 /* ICSTimeZoneParser.swift */; };
+		512ADA412090BA15005F9AC2 /* ICSTimeZoneParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 512ADA3F2090BA15005F9AC2 /* ICSTimeZoneParser.swift */; };
 		51873BD11FD2AA570000E9C5 /* university.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD01FD2AA570000E9C5 /* university.ics */; };
 		51873BD31FD2AAC50000E9C5 /* basic.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD21FD2AAC50000E9C5 /* basic.ics */; };
 		51873BD51FD2D6150000E9C5 /* university-formatted.ics in Resources */ = {isa = PBXBuildFile; fileRef = 51873BD41FD2D6150000E9C5 /* university-formatted.ics */; };
@@ -83,6 +89,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		512ADA392090AFF7005F9AC2 /* CalendarTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTools.swift; sourceTree = "<group>"; };
+		512ADA3C2090B042005F9AC2 /* ICS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICS.swift; sourceTree = "<group>"; };
+		512ADA3F2090BA15005F9AC2 /* ICSTimeZoneParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICSTimeZoneParser.swift; sourceTree = "<group>"; };
 		51873BD01FD2AA570000E9C5 /* university.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = university.ics; sourceTree = "<group>"; usesTabs = 0; wrapsLines = 1; };
 		51873BD21FD2AAC50000E9C5 /* basic.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = basic.ics; sourceTree = "<group>"; };
 		51873BD41FD2D6150000E9C5 /* university-formatted.ics */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "university-formatted.ics"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.applescript; };
@@ -233,7 +242,10 @@
 			children = (
 				51A1D3401FD057DB00963B5F /* SwiftCal.swift */,
 				51A1D33B1FCF4F4600963B5F /* CalendarEvent.swift */,
+				512ADA392090AFF7005F9AC2 /* CalendarTools.swift */,
 				51A1D33E1FCF572800963B5F /* ICSEventParser.swift */,
+				512ADA3F2090BA15005F9AC2 /* ICSTimeZoneParser.swift */,
+				512ADA3C2090B042005F9AC2 /* ICS.swift */,
 			);
 			path = SwiftCal;
 			sourceTree = "<group>";
@@ -456,8 +468,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				51873C001FD3767E0000E9C5 /* CalendarEvent.swift in Sources */,
+				512ADA3B2090AFF7005F9AC2 /* CalendarTools.swift in Sources */,
 				51873C011FD376D60000E9C5 /* ICSEventParser.swift in Sources */,
 				51873BFF1FD3767B0000E9C5 /* SwiftCal.swift in Sources */,
+				512ADA3E2090B042005F9AC2 /* ICS.swift in Sources */,
+				512ADA412090BA15005F9AC2 /* ICSTimeZoneParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -474,10 +489,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				51A1D3041FCF4A5C00963B5F /* ViewController.swift in Sources */,
+				512ADA402090BA15005F9AC2 /* ICSTimeZoneParser.swift in Sources */,
 				51A1D33C1FCF4F4600963B5F /* CalendarEvent.swift in Sources */,
 				51A1D33F1FCF572800963B5F /* ICSEventParser.swift in Sources */,
+				512ADA3A2090AFF7005F9AC2 /* CalendarTools.swift in Sources */,
 				51A1D3411FD057DB00963B5F /* SwiftCal.swift in Sources */,
 				51A1D3021FCF4A5C00963B5F /* AppDelegate.swift in Sources */,
+				512ADA3D2090B042005F9AC2 /* ICS.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
