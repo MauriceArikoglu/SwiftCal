@@ -16,12 +16,20 @@ class ViewController: UIViewController {
 
         do {
             let file = try String(contentsOfFile: Bundle.main.path(forResource: "university-formatted", ofType: "ics") ?? "")
-            let swiftCal = Read.swiftCal(from: file)
-            let eventsForToday = swiftCal.events(for: Date().addingTimeInterval(86400 * 1))
+            let swiftCal = try SwiftCal(icsFileContent: file)
+//            let eventsForToday = swiftCal.events(for: Date().addingTimeInterval(86400 * 1))
 
-            for event in eventsForToday {
-                print(event.title ?? "")
-                print(event.startDate ?? "")
+            for event in swiftCal.allEvents {
+                
+                guard
+                    let title = event.title,
+                    let start = event.startDate
+                    else {
+                        print("Insufficient event info")
+                        continue
+                }
+                print(title)
+                print(start)
             }
         } catch {
             fatalError("Something went wrong, check your ics file.")
