@@ -71,9 +71,8 @@ struct ICSEventParser {
 
         event.location = location(from: icsString)
 
-        event.exceptionDates = exceptionDates(from: icsString).compactMap({
-            dateFormatter.dateFromICSString(icsDate: $0).date
-        })
+        event.exceptionDates = exceptionDates(from: icsString)
+            .compactMap { dateFormatter.dateFromICSString(icsDate: $0).date }
 
         if let exceptionRule = exceptionRule(from: icsString) {
             event.exceptionRule = eventRule(from: exceptionRule)
@@ -612,6 +611,7 @@ struct ICSEventParser {
 
         return ruleString?.replacingOccurrences(of: "=", with: "")
     }
+    
 }
 
 extension String {
@@ -651,6 +651,7 @@ extension DateFormatter {
         static let dateOnly = "yyyyMMdd"
         static let dateOnlyWithZone = "yyyyMMddz"
     }
+    
     // Returns date and isAllDay boolean
     func dateFromICSString(icsDate: String, calendarTimezone: TimeZone? = nil) -> (date: Date?, allDay: Bool) {
 
@@ -658,7 +659,7 @@ extension DateFormatter {
 
         let formattedString = icsDate.replacingOccurrences(of: "T", with: " ")
 
-        let containsTimezone: Bool = (formattedString.lowercased().range(of: "z") != nil)
+        let containsTimezone: Bool = formattedString.lowercased().range(of: "z") != nil
 
         var date = self.date(from: formattedString)
 
@@ -686,4 +687,5 @@ extension DateFormatter {
             return (date, false)
         }
     }
+    
 }

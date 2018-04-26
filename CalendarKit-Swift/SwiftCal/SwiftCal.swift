@@ -42,9 +42,8 @@ public class SwiftCal {
             throw error
         }
 
-        let calendarEventsICS = formattedICS.components(separatedBy: ICSEventKey.eventBegin).compactMap({
-            $0.contains(ICSEventKey.eventEnd) ? $0 : nil
-        })
+        let calendarEventsICS = formattedICS.components(separatedBy: ICSEventKey.eventBegin)
+            .compactMap { $0.contains(ICSEventKey.eventEnd) ? $0 : nil }
 
         for event in calendarEventsICS {
             guard
