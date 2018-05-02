@@ -260,23 +260,31 @@ class ICSEventParser: NSObject {
     }
     
     private static func description(from icsString: String) -> String? {
-        
+
         var descriptionString: NSString?
 
         var eventScanner = Scanner(string: icsString)
         eventScanner.charactersToBeSkipped = newlineCharacterSet()
-        eventScanner.scanUpTo(ICS.description, into: nil)
-        eventScanner.scanUpTo("\n", into: &descriptionString)
 
-        // Handle description that has the language tag e.g.
-        // `DESCRIPTION;LANGUAGE=en-US:Dear Gary, Attached is the ...`
-        if descriptionString == nil {
-            eventScanner = Scanner(string: icsString)
-            eventScanner.charactersToBeSkipped = newlineCharacterSet()
-            eventScanner.scanUpTo(ICS.description2, into: nil)
-            eventScanner.scanUpTo(":", into: nil)
-            eventScanner.scanString(":", into: nil)
+        // Handle `DESCRIPTION;LANGUAGE=en-US:Dear Gary, Attached is the ...` format
+        eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+        eventScanner.scanUpTo(ICS.description2, into: nil)
+        eventScanner.scanUpTo(":", into: nil)
+        eventScanner.scanString(":", into: nil)
+        eventScanner.scanUpTo("\n", into: &descriptionString)
+        if descriptionString != nil {
+            descriptionString = descriptionString?.replacingOccurrences(of: ICS.description2, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+        }
+
+        // Handle `DESCRIPTION:Dear Gary, Attached is the ...` format
+        if descriptionString?.length ?? 0 == 0 {
+            eventScanner.scanLocation = 0
+            eventScanner.scanUpTo(ICS.description, into: nil)
             eventScanner.scanUpTo("\n", into: &descriptionString)
+            if descriptionString != nil {
+                descriptionString = descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+            }
         }
 
         // a multi-line description can have newline characters
@@ -297,7 +305,7 @@ class ICSEventParser: NSObject {
             }
         }
 
-        return descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+        return descriptionString?.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
     }
 
     private static func newlineCharacterSet() -> CharacterSet {
