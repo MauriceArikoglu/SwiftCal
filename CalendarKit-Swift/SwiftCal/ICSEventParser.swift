@@ -465,13 +465,30 @@ class ICSEventParser: NSObject {
     }
     
     private static func uniqueIdentifier(from icsString: String) -> String? {
-        
         var uniqueIdString: NSString?
-        
+
         let eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
         eventScanner.scanUpTo(ICS.uniqueId, into: nil)
+
+        let originalScanLocation = eventScanner.scanLocation
         eventScanner.scanUpTo("\n", into: &uniqueIdString)
-        
+        let newlineScanLocation = eventScanner.scanLocation
+        eventScanner.scanLocation = originalScanLocation
+        eventScanner.scanUpTo("\n\t", into: nil)
+        let tabScanLocation = eventScanner.scanLocation
+        eventScanner.scanLocation = originalScanLocation
+
+        // There are cases when there's a tab (\n\t) within the uid field.
+        if tabScanLocation == newlineScanLocation {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n\t", into: &uniqueIdString)
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine {
+                uniqueIdString = uniqueIdString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+            }
+        }
+
         return uniqueIdString?.replacingOccurrences(of: ICS.uniqueId, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
     
