@@ -37,6 +37,7 @@ class ICSEventParser: NSObject {
         static let startDateAndTimezone = "DTSTART;TZID=%@:"
         static let timezone = "TZID:"
         static let timezoneStartDateAndTimezone = "DTSTART;TZID="
+        static let comment = "COMMENT;"
     }
 
     static func event(from icsString: String, calendarTimezone: TimeZone? = nil) -> CalendarEvent? {
@@ -106,6 +107,8 @@ class ICSEventParser: NSObject {
             event.recurrenceRuleString = recurrenceRule
             event.recurrenceRule = eventRule(from: recurrenceRule)
         }
+
+        event.comment = comment(from: icsString)
 
         return event
     }
@@ -366,7 +369,7 @@ class ICSEventParser: NSObject {
                         let originalScanLocation = eventScanner.scanLocation
                         eventScanner.scanUpTo("\n", into: &nextLine)
                         if let nextLine = nextLine, nextLine.hasPrefix(" ") {
-                            attendeeNSString = attendeeNSString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+                            attendeeNSString = attendeeNSString?.appending(nextLine.substring(from: 1)) as NSString?
                         } else {
                             eventScanner.scanLocation = originalScanLocation
                             isMultiLineDescription = false;
@@ -451,6 +454,15 @@ class ICSEventParser: NSObject {
         commonNameScanner.scanUpTo(";", into: &commonName)
         if let commonName = commonName {
             attendee.name = commonName.replacingOccurrences(of: "CN=", with: "", options: .caseInsensitive, range: NSMakeRange(0, commonName.length))
+        }
+
+        var comment: NSString?
+        let commentScanner = Scanner(string: icsString)
+        let foundComment = commentScanner.scanUpTo("X-RESPONSE-COMMENT=\"", into: nil)
+        commentScanner.scanString("X-RESPONSE-COMMENT=\"", into: nil)
+        commentScanner.scanUpTo("\"", into: &comment)
+        if foundComment, let comment = comment {
+            attendee.comment = comment.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "")
         }
 
         var email: NSString?
@@ -683,6 +695,46 @@ class ICSEventParser: NSObject {
         ruleScanner.scanUpTo(";", into: &ruleString)
         
         return ruleString?.replacingOccurrences(of: "=", with: "")
+    }
+
+    private static func comment(from icsString: String) -> String? {
+        var commentString: NSString?
+
+        var eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+
+        // Handle `COMMENT;LANGUAGE=en-US:Dear Gary, Attached is the ...` format
+        eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+        let commentFound = eventScanner.scanUpTo(ICS.comment, into: nil)
+        guard commentFound else { return nil }
+
+        eventScanner.scanUpTo(":", into: nil)
+        eventScanner.scanString(":", into: nil)
+        eventScanner.scanUpTo("\n", into: &commentString)
+        if commentString != nil {
+            commentString = commentString?.replacingOccurrences(of: ICS.comment, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+        }
+
+        // a multi-line description can have newline characters
+        // as per ICS protocol, the newline characters within a field should be represented by \\n
+        // however, some ICS files don't follow this rule and use the actual newline character (\n) instead
+        // the way to differentiate between this \n and the \n that acts as a delimiter between different fields in the ICS file is that
+        // the newline that starts after this \n has an empty string prefix
+        // are characters within the description and not delimiters, since they start with a space or tab
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                commentString = commentString?.appending(nextLine.substring(from: 1)) as NSString?
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
+
+        return commentString?.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
     }
 }
 
