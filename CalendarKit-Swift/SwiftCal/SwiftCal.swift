@@ -11,6 +11,7 @@ import UIKit
 public class SwiftCal: NSObject {
 
     public var events = [CalendarEvent]()
+    public var method: String?
     public var timezone: TimeZone?
     
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
@@ -70,7 +71,7 @@ public class Read {
             headerScanner.scanUpTo("TZOFFSETTO:", into: nil)
             headerScanner.scanUpTo("\n", into: &timezoneOffset)
 
-            if let timezoneId = timezoneId?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: .newlines),
+            if timezoneId?.replacingOccurrences(of: "TZID:", with: "").trimmingCharacters(in: .newlines) != nil,
                 let timezoneOffset = timezoneOffset?.replacingOccurrences(of: "TZOFFSETTO:", with: "").trimmingCharacters(in: .newlines) {
                 // timezoneoffset e.g. +0430 indicating 4 hours 30 mins ahead of UTC
                 if timezoneOffset.count == 5 {
