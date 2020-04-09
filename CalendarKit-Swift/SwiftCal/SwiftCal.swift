@@ -65,6 +65,7 @@ public class Read {
             let methodScanner = Scanner(string: icsString)
             methodScanner.scanUpTo("METHOD:", into: nil)
             methodScanner.scanUpTo("\n", into: &methodString)
+            
             var timezoneId: NSString?
             var timezoneOffset: NSString?
 
