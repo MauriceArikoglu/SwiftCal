@@ -277,7 +277,7 @@ class ICSEventParser: NSObject {
         eventScanner.scanString(":", into: nil)
         eventScanner.scanUpTo("\n", into: &descriptionString)
         if descriptionString != nil {
-            descriptionString = descriptionString?.replacingOccurrences(of: ICS.description2, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+            descriptionString = descriptionString?.replacingOccurrences(of: ICS.description2, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
         }
 
         // Handle `DESCRIPTION:Dear Gary, Attached is the ...` format
@@ -286,7 +286,7 @@ class ICSEventParser: NSObject {
             eventScanner.scanUpTo(ICS.description, into: nil)
             eventScanner.scanUpTo("\n", into: &descriptionString)
             if descriptionString != nil {
-                descriptionString = descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+                descriptionString = descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
             }
         }
 
@@ -713,7 +713,7 @@ class ICSEventParser: NSObject {
         eventScanner.scanString(":", into: nil)
         eventScanner.scanUpTo("\n", into: &commentString)
         if commentString != nil {
-            commentString = commentString?.replacingOccurrences(of: ICS.comment, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as! NSString
+            commentString = commentString?.replacingOccurrences(of: ICS.comment, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
         }
 
         // a multi-line description can have newline characters
