@@ -65,7 +65,10 @@ public class Read {
             let methodScanner = Scanner(string: icsString)
             methodScanner.scanUpTo("METHOD:", into: nil)
             methodScanner.scanUpTo("\n", into: &methodString)
-            
+            if let theMethodString = methodString {
+                calendar.method = String(theMethodString.substring(from: 7))
+            }
+
             var timezoneId: NSString?
             var timezoneOffset: NSString?
 
