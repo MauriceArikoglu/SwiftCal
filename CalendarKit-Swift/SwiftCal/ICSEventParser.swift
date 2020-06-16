@@ -8,7 +8,41 @@
 
 import UIKit
 
+<<<<<<< HEAD
 struct ICSEventParser {
+=======
+class ICSEventParser: NSObject {
+
+    private struct ICS {
+        static let exceptionDate = "EXDATE;"
+        static let exceptionRule = "EXRULE:"
+        static let recurrenceRule = "RRULE:"
+        static let transparent = "TRANSP:"
+        static let summary = "SUMMARY:"
+        static let status = "STATUS:"
+        static let organizer = "ORGANIZER;"
+        static let organizer2 = "ORGANIZER:"
+        static let sequence = "SEQUENCE:"
+        static let location = "LOCATION:"
+        static let lastModified = "LAST-MODIFIED:"
+        static let description = "DESCRIPTION:"
+        static let description2 = "DESCRIPTION;"
+        static let created = "CREATED:"
+        static let recurrenceId = "RECURRENCE-ID;TZID=%@"
+        static let attendee = "ATTENDEE;"
+        static let uniqueId = "UID:"
+        static let timestamp = "DTSTAMP:"
+        static let endDate = "DTEND:"
+        static let endDateValueDate = "DTEND;VALUE=DATE:"
+        static let endDateAndTimezone = "DTEND;TZID=%@:"
+        static let startDate = "DTSTART:"
+        static let startDateValueDate = "DTSTART;VALUE=DATE:"
+        static let startDateAndTimezone = "DTSTART;TZID=%@:"
+        static let timezone = "TZID:"
+        static let timezoneStartDateAndTimezone = "DTSTART;TZID="
+        static let comment = "COMMENT;"
+    }
+>>>>>>> superhuman-master
 
     static func event(from icsString: String, calendarTimezone: TimeZone? = nil) -> CalendarEvent? {
 
@@ -82,6 +116,8 @@ struct ICSEventParser {
             event.recurrenceRuleString = recurrenceRule
             event.recurrenceRule = eventRule(from: recurrenceRule)
         }
+
+        event.comment = comment(from: icsString)
 
         return event
     }
@@ -241,9 +277,23 @@ struct ICSEventParser {
 
         var eventScanner = Scanner(string: icsString)
         eventScanner.charactersToBeSkipped = newlineCharacterSet()
+<<<<<<< HEAD
         eventScanner.scanUpTo(ICSEventKey.description, into: nil)
-        eventScanner.scanUpTo("\n", into: &descriptionString)
+=======
 
+        // Handle `DESCRIPTION;LANGUAGE=en-US:Dear Gary, Attached is the ...` format
+        eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+        eventScanner.scanUpTo(ICS.description2, into: nil)
+        eventScanner.scanUpTo(":", into: nil)
+        eventScanner.scanString(":", into: nil)
+>>>>>>> superhuman-master
+        eventScanner.scanUpTo("\n", into: &descriptionString)
+        if descriptionString != nil {
+            descriptionString = descriptionString?.replacingOccurrences(of: ICS.description2, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
+        }
+
+<<<<<<< HEAD
         // Handle description that has the language tag e.g.
         // `DESCRIPTION;LANGUAGE=en-US:Dear Gary, Attached is the ...`
         if descriptionString == nil {
@@ -252,7 +302,16 @@ struct ICSEventParser {
             eventScanner.scanUpTo(ICSEventKey.description2, into: nil)
             eventScanner.scanUpTo(":", into: nil)
             eventScanner.scanString(":", into: nil)
+=======
+        // Handle `DESCRIPTION:Dear Gary, Attached is the ...` format
+        if descriptionString?.length ?? 0 == 0 {
+            eventScanner.scanLocation = 0
+            eventScanner.scanUpTo(ICS.description, into: nil)
+>>>>>>> superhuman-master
             eventScanner.scanUpTo("\n", into: &descriptionString)
+            if descriptionString != nil {
+                descriptionString = descriptionString?.replacingOccurrences(of: ICS.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
+            }
         }
 
         // a multi-line description can have newline characters
@@ -273,7 +332,11 @@ struct ICSEventParser {
             }
         }
 
+<<<<<<< HEAD
         return descriptionString?.replacingOccurrences(of: ICSEventKey.description, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+=======
+        return descriptionString?.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+>>>>>>> superhuman-master
     }
 
     private static func newlineCharacterSet() -> CharacterSet {
@@ -335,7 +398,11 @@ struct ICSEventParser {
                         eventScanner.scanUpTo("\n", into: &nextLine)
                         if let nextLine = nextLine,
                             nextLine.hasPrefix(" ") {
+<<<<<<< HEAD
                             attendeeNSString = attendeeNSString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+=======
+                            attendeeNSString = attendeeNSString?.appending(nextLine.substring(from: 1)) as NSString?
+>>>>>>> superhuman-master
                         } else {
                             eventScanner.scanLocation = originalScanLocation
                             isMultiLineDescription = false
@@ -424,6 +491,18 @@ struct ICSEventParser {
                                                             with: "",
                                                             options: .caseInsensitive,
                                                             range: NSMakeRange(0, commonName.length))
+<<<<<<< HEAD
+=======
+        }
+
+        var comment: NSString?
+        let commentScanner = Scanner(string: icsString)
+        let foundComment = commentScanner.scanUpTo("X-RESPONSE-COMMENT=\"", into: nil)
+        commentScanner.scanString("X-RESPONSE-COMMENT=\"", into: nil)
+        commentScanner.scanUpTo("\"", into: &comment)
+        if foundComment, let comment = comment {
+            attendee.comment = comment.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "")
+>>>>>>> superhuman-master
         }
 
         var email: NSString?
@@ -445,8 +524,31 @@ struct ICSEventParser {
         var uniqueIdString: NSString?
 
         let eventScanner = Scanner(string: icsString)
+<<<<<<< HEAD
         eventScanner.scanUpTo(ICSEventKey.uniqueId, into: nil)
         eventScanner.scanUpTo("\n", into: &uniqueIdString)
+=======
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+        eventScanner.scanUpTo(ICS.uniqueId, into: nil)
+
+        let originalScanLocation = eventScanner.scanLocation
+        eventScanner.scanUpTo("\n", into: &uniqueIdString)
+        let newlineScanLocation = eventScanner.scanLocation
+        eventScanner.scanLocation = originalScanLocation
+        eventScanner.scanUpTo("\n\t", into: nil)
+        let tabScanLocation = eventScanner.scanLocation
+        eventScanner.scanLocation = originalScanLocation
+
+        // There are cases when there's a tab (\n\t) within the uid field.
+        if tabScanLocation == newlineScanLocation {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n\t", into: &uniqueIdString)
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine {
+                uniqueIdString = uniqueIdString?.appending(nextLine.trimmingCharacters(in: .whitespacesAndNewlines)) as NSString?
+            }
+        }
+>>>>>>> superhuman-master
 
         return uniqueIdString?.replacingOccurrences(of: ICSEventKey.uniqueId, with: "").trimmingCharacters(in: CharacterSet.newlines).fixIllegalICS()
     }
@@ -611,7 +713,50 @@ struct ICSEventParser {
 
         return ruleString?.replacingOccurrences(of: "=", with: "")
     }
+<<<<<<< HEAD
     
+=======
+
+    private static func comment(from icsString: String) -> String? {
+        var commentString: NSString?
+
+        var eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+
+        // Handle `COMMENT;LANGUAGE=en-US:Dear Gary, Attached is the ...` format
+        eventScanner = Scanner(string: icsString)
+        eventScanner.charactersToBeSkipped = newlineCharacterSet()
+        let commentFound = eventScanner.scanUpTo(ICS.comment, into: nil)
+        guard commentFound else { return nil }
+
+        eventScanner.scanUpTo(":", into: nil)
+        eventScanner.scanString(":", into: nil)
+        eventScanner.scanUpTo("\n", into: &commentString)
+        if commentString != nil {
+            commentString = commentString?.replacingOccurrences(of: ICS.comment, with: "").replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: newlineCharacterSet()) as NSString?
+        }
+
+        // a multi-line description can have newline characters
+        // as per ICS protocol, the newline characters within a field should be represented by \\n
+        // however, some ICS files don't follow this rule and use the actual newline character (\n) instead
+        // the way to differentiate between this \n and the \n that acts as a delimiter between different fields in the ICS file is that
+        // the newline that starts after this \n has an empty string prefix
+        // are characters within the description and not delimiters, since they start with a space or tab
+        var isMultiLineDescription = true;
+
+        while isMultiLineDescription {
+            var nextLine: NSString?
+            eventScanner.scanUpTo("\n", into: &nextLine)
+            if let nextLine = nextLine, nextLine.hasPrefix(" ") {
+                commentString = commentString?.appending(nextLine.substring(from: 1)) as NSString?
+            } else {
+                isMultiLineDescription = false;
+            }
+        }
+
+        return commentString?.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\", with: "").trimmingCharacters(in: CharacterSet.newlines)
+    }
+>>>>>>> superhuman-master
 }
 
 extension String {

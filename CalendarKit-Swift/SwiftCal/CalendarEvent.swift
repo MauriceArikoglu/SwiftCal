@@ -28,6 +28,7 @@ public struct EventAttendee {
     public var email: String?
     public var status: String?
     public var role: AttendeeRole?
+    public var comment: String?
 }
 
 public class EventRule: NSObject {
@@ -110,6 +111,8 @@ public class CalendarEvent: NSObject {
             return (recurrenceRule != nil)
         }
     }
+
+    public var comment: String?
 
     public init(startDate: Date, endDate: Date?, uniqueId: String) {
         super.init()

@@ -8,56 +8,11 @@
 
 import UIKit
 
-public enum SwiftCalError: Error {
-    case emptyICS
-    case timezoneUnsalvageable
-}
+public class SwiftCal: NSObject {
 
-public class SwiftCal {
-
-    public var timezone: TimeZone
-    public var allEvents: [CalendarEvent] {
-        return eventStore
-    }
-    private var eventStore = [CalendarEvent]()
-
-    init(icsFileContent: String) throws {
-
-        let formattedICS = icsFileContent.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-
-        guard
-            formattedICS.count > 0
-        else {
-            throw SwiftCalError.emptyICS
-        }
-
-        do {
-            guard
-                let timezone = try TimeZone(formattedICS: formattedICS)
-                else {
-                    throw SwiftCalError.timezoneUnsalvageable
-            }
-            self.timezone = timezone
-        } catch {
-            throw error
-        }
-
-        let calendarEventsICS = formattedICS.components(separatedBy: ICSEventKey.eventBegin)
-            .compactMap { $0.contains(ICSEventKey.eventEnd) ? $0 : nil }
-
-        for event in calendarEventsICS {
-            guard
-                let calendarEvent = ICSEventParser.event(from: event, calendarTimezone: self.timezone)
-                else {
-                    continue
-            }
-            self.addEvent(calendarEvent)
-        }
-    }
-
-}
-
-extension SwiftCal {
+    public var events = [CalendarEvent]()
+    public var method: String?
+    public var timezone: TimeZone?
 
     @discardableResult public func addEvent(_ event: CalendarEvent) -> Int {
 
